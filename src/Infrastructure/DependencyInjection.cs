@@ -2,7 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MinimalistECommerce.Application.Contracts.Persistence; // Para IProductRepository
 using MinimalistECommerce.Infrastructure.Persistence; // Namespace do nosso DbContext
+
+
 
 namespace MinimalistECommerce.Infrastructure
 {
@@ -26,7 +29,7 @@ namespace MinimalistECommerce.Infrastructure
                 options.UseSqlServer(connectionString));
 
             // --- Registro de Repositórios e outros serviços da Infrastructure virão aqui ---
-            // Exemplo: services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IProductRepository, ProductRepository>();
 
             return services;
         }
