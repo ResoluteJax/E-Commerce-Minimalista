@@ -7,6 +7,7 @@ using MinimalistECommerce.Infrastructure.Persistence; // Namespace do nosso DbCo
 
 
 
+
 namespace MinimalistECommerce.Infrastructure
 {
     public static class DependencyInjection
@@ -30,6 +31,7 @@ namespace MinimalistECommerce.Infrastructure
 
             // --- Registro de Repositórios e outros serviços da Infrastructure virão aqui ---
             services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<ICartRepository, CartRepository>();
 
             return services;
         }
