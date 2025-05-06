@@ -1,6 +1,7 @@
 // frontend/src/components/ProductList.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'; 
+import { useCart } from '../context/CartContext'; 
 
 function ProductList() {
   // Estado para armazenar a lista de produtos
@@ -9,6 +10,7 @@ function ProductList() {
   const [loading, setLoading] = useState(true);
   // Estado para armazenar possíveis erros da API
   const [error, setError] = useState(null);
+  const {refreshCart} = useCart();
 
   // useEffect para buscar os dados da API quando o componente montar
   useEffect(() => {
@@ -43,7 +45,6 @@ function ProductList() {
   }, []); // O array vazio [] garante que o useEffect rode apenas uma vez (na montagem)
 
   // --- Renderização Condicional ---
-
   // Se estiver carregando, exibe mensagem de loading
   if (loading) {
     return <p>Carregando produtos...</p>;
@@ -59,6 +60,42 @@ function ProductList() {
     return <p>Nenhum produto encontrado.</p>;
   }
 
+  //Função assíncrona para lídar com o clique do botão
+  
+  const handleAddToCart = async (event, productId) => { // Aceita event
+    event.stopPropagation(); // Impede propagação
+    event.preventDefault();  // Impede navegação
+
+    const apiUrl = 'http://localhost:5015/api/cart/items';
+    const itemToAdd = { productId: productId, quantity: 1 };
+    console.log('Adicionando ao carrinho:', itemToAdd);
+  
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(itemToAdd),
+      });
+  
+      if (!response.ok) {
+        // Se a API retornar erro (ex: produto não existe mais, erro de validação não pego antes)
+        const errorData = await response.text(); // Tenta pegar mais detalhes do erro
+        throw new Error(`Erro HTTP: ${response.status} - ${errorData}`);
+      }
+  
+      // Sucesso!
+      console.log('Produto adicionado/atualizado no carrinho!', itemToAdd);
+      alert(`Produto ${productId} adicionado ao carrinho!`); // Feedback simples para o usuário
+      await refreshCart(); // Chama a função do contexto para re-buscar os dados do carrinho
+
+    } catch (error) {
+      console.error("Erro ao adicionar ao carrinho:", error);
+      alert(`Erro ao adicionar produto: ${error.message}`); // Mostra erro para o usuário
+    }
+  };
+  
   // NOVO return (quando products.length > 0)
 return (
     <div>
@@ -78,6 +115,12 @@ return (
                 <p style={{ fontWeight: 'bold' }}>
                   R$ {product.price.toFixed(2)}
                 </p>
+
+                 {/* Botão Adicionar ao Carrinho */}
+                  <button onClick={(e) => handleAddToCart(e, product.id)}> {/* Passa 'e' (evento) */}
+                    Adicionar ao Carrinho
+                  </button>
+
               </div>
             </Link> // Fecha o Link
           ))}

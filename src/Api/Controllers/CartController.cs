@@ -188,7 +188,45 @@ public async Task<ActionResult> UpdateCartItemQuantity(int productId, [FromBody]
     return Ok();
 }
 
+// DELETE: api/cart/items/{productId}
+[HttpDelete("items/{productId}")]
+[ProducesResponseType(StatusCodes.Status204NoContent)] // Sucesso na remoção
+[ProducesResponseType(StatusCodes.Status404NotFound)] // Item não encontrado
+public async Task<ActionResult> RemoveItemFromCart(int productId)
 
+{
+    // --- Estratégia Temporária de Identificação do Carrinho ---
+    var temporaryCartId = Guid.Parse("8fc77faa-10d1-4f13-aeba-29d09571fe87"); // !!! Guid fixo !!!
+    // ----------------------------------------------------------
+
+// 1. Busca o item específico no carrinho
+var cartItem = await _cartRepository.GetCartItemByCartIdAndProductIdAsync(temporaryCartId, productId);
+
+// 2. Se o item não existe no carrinho, retorna erro
+if (cartItem == null)
+{
+    return NotFound($"item com ProductId {productId} não encontrado no carrinho {temporaryCartId}");
+}
+
+// 3. Marca o item para remoção
+_cartRepository.DeleteCartItem(cartItem);
+
+// 4. Salva as alterações no banco de dados
+try 
+{
+    await _cartRepository.SaveChangesAsync();
+}
+catch (Exception ex) // Captura erros de banco ao deletar
+{
+    _logger.LogError(ex, "Erro ao salvar alterações ao remover item do carrinho."); // Usa o ILogger injetado
+    return StatusCode(StatusCodes.Status500InternalServerError, "Erro interno ao remover item do carrinho.");
+}
+
+// 5. Retorna NoContent (204) - Resposta padrão para DELETE bem-sucedido sem conteúdo a retornar
+return NoContent();
+}
+
+//proximos métodos aqui! 
 
 
 }
