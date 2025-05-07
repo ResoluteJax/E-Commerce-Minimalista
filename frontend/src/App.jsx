@@ -4,6 +4,7 @@ import ProductList from './components/ProductList';
 import ProductDetail from './components/ProductDetail';
 import CartIcon from './components/CartIcon'; // Importado
 import CartPage from './components/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
 import './App.css';
 
 function App() {
@@ -12,14 +13,15 @@ function App() {
       {/* Cabeçalho simples */}
       <header style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
         <h1>Meu E-commerce Minimalista</h1>
-        <CartIcon /> {/* <-- Adicionado aqui */}
+        <CartIcon /> 
       </header>
 
       <main> {/* Conteúdo principal */}
         <Routes>
           <Route path="/" element={<ProductList />} />
           <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="/cart" element={<CartPage />} /> {/* <-- Adicione esta rota */}
+          <Route path="/cart" element={<CartPage />} /> 
+          <Route path="/checkout" element={<CheckoutPage />} />
         </Routes>
       </main>
     </>
