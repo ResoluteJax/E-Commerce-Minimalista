@@ -5,6 +5,7 @@ import ProductDetail from './components/ProductDetail';
 import CartIcon from './components/CartIcon'; // Importado
 import CartPage from './components/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import './App.css';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<CartPage />} /> 
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
         </Routes>
       </main>
     </>

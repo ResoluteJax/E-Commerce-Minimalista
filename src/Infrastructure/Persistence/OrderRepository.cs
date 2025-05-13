@@ -3,6 +3,9 @@ using System;
 using System.Threading.Tasks;
 using MinimalistECommerce.Application.Contracts.Persistence;
 using MinimalistECommerce.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+
 
 namespace MinimalistECommerce.Infrastructure.Persistence
 {
@@ -22,6 +25,29 @@ namespace MinimalistECommerce.Infrastructure.Persistence
             await _context.Orders.AddAsync(order);
         }
 
+
+
+
+        public async Task<Order?> GetByIdAsync(int orderId, bool includeItemsAndProducts = true)
+        {
+            IQueryable<Order> query = _context.Orders;
+
+            if (includeItemsAndProducts)
+            {
+                query = query
+                    .Include(o => o.OrderItems)    // Inclui os itens do pedido
+                    .ThenInclude(oi => oi.Product); // Para cada item, inclui o produto associado
+            }
+            // Poderíamos adicionar .Include(o => o.Customer) se quiséssemos carregar o cliente também
+
+            return await query.FirstOrDefaultAsync(o => o.Id == orderId);
+        }
+
+
+
+
+
+
         public async Task<int> SaveChangesAsync()
         {
             // Salva todas as alterações rastreadas pelo contexto (incluindo Orders e OrderItems)
@@ -29,3 +55,4 @@ namespace MinimalistECommerce.Infrastructure.Persistence
         }
     }
 }
+

@@ -66,5 +66,22 @@ namespace MinimalistECommerce.Infrastructure.Persistence
             // Salva todas as alterações rastreadas pelo context (para Carts e CartItems)
             return await _context.SaveChangesAsync();
         }
+
+
+        public async Task ClearCartAsync(Guid cartId)
+        {
+    // Encontra todos os itens do carrinho especificado
+    var cartItems = await _context.CartItems
+        .Where(ci => ci.CartId == cartId)
+        .ToListAsync();
+
+    if (cartItems.Any())
+    {
+        _context.CartItems.RemoveRange(cartItems); // Marca todos para remoção
+
+    }
+    // SaveChangesAsync será chamado pelo serviço/controller que orquestra a operação
+}
+
     }
 }

@@ -25,6 +25,9 @@ namespace MinimalistECommerce.Application.Contracts.Persistence
         // Marca um item de carrinho como removido no contexto
         void DeleteCartItem(CartItem cartItem);
 
+
+        Task ClearCartAsync(Guid cartId); 
+
         // Salva todas as alterações pendentes no contexto para o banco de dados
         Task<int> SaveChangesAsync();
     }

@@ -33,16 +33,47 @@ namespace MinimalistECommerce.Api.Controllers
 
         // --- Endpoint POST para criar pedido virá aqui ---
 
-        // --- Placeholder GET para CreatedAtAction ---
-        // Precisamos de um endpoint GET (mesmo que vazio por agora) para o CreatedAtAction funcionar
-        [HttpGet("{id}", Name = "GetOrder")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult GetOrder(int id)
+        // Substitua o GetOrder existente por este:
+[HttpGet("{id}", Name = "GetOrder")]
+[ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
+[ProducesResponseType(StatusCodes.Status404NotFound)]
+public async Task<ActionResult<OrderDto>> GetOrder(int id)
+{
+    _logger.LogInformation("Buscando pedido com ID: {OrderId}", id);
+
+    // Busca o pedido incluindo seus itens e os produtos dos itens
+    var order = await _orderRepository.GetByIdAsync(id, includeItemsAndProducts: true);
+
+    if (order == null)
+    {
+        _logger.LogWarning("Pedido com ID {OrderId} não encontrado.", id);
+        return NotFound($"Pedido com ID {id} não encontrado.");
+    }
+
+    // Mapeia a entidade Order para OrderDto
+    var orderDto = new OrderDto
+    {
+        Id = order.Id,
+        OrderDate = order.OrderDate,
+        Status = order.Status,
+        TotalAmount = order.TotalAmount,
+        CustomerId = order.CustomerId,
+        ShippingAddress = order.ShippingAddress,
+        Items = order.OrderItems.Select(oi => new CartItemDto // Reutilizando CartItemDto
         {
-             // Lógica para buscar um pedido pelo ID virá aqui depois
-             _logger.LogInformation("GetOrder chamado com id {OrderId} (Não implementado)", id);
-             return NotFound($"Endpoint GetOrder para id {id} não implementado.");
-        }
+            Id = oi.Id, // Este é o Id do OrderItem
+            ProductId = oi.ProductId,
+            Quantity = oi.Quantity,
+            UnitPrice = oi.UnitPrice, // Preço unitário no momento do pedido
+            ProductName = oi.Product?.Name ?? "Produto não disponível", // Nome do produto
+            ImageUrl = oi.Product?.ImageUrl ?? "" // Imagem do produto
+            // LineTotal é calculado no CartItemDto
+        }).ToList()
+    };
+
+    _logger.LogInformation("Pedido com ID {OrderId} encontrado e retornado.", id);
+    return Ok(orderDto);
+}
 
 
   //---------------------------\\
@@ -119,10 +150,21 @@ public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CheckoutDto che
     }
      _logger.LogInformation("Pedido {OrderId} criado com sucesso.", order.Id);
 
-    // 7. TODO: Limpar o carrinho após o pedido ser criado com sucesso.
-    //    Isso exigiria métodos adicionais no ICartRepository (ex: RemoveItemsByCartId)
-    //    e talvez chamar SaveChangesAsync no _cartRepository também. Adiaremos isso.
-    //    Ex: await _cartRepository.ClearCartAsync(temporaryCartId); await _cartRepository.SaveChangesAsync();
+    // 7. Limpar o carrinho APÓS o pedido ser criado com sucesso.
+try
+{
+    _logger.LogInformation("Limpando carrinho {CartId} após criação do pedido {OrderId}.", temporaryCartId, order.Id);
+    await _cartRepository.ClearCartAsync(temporaryCartId); // Marca itens para deleção
+    await _cartRepository.SaveChangesAsync(); // Efetiva a deleção dos itens do carrinho
+    _logger.LogInformation("Carrinho {CartId} limpo com sucesso.", temporaryCartId);
+}
+catch (Exception ex)
+{
+    // Logar o erro da limpeza do carrinho, mas não falhar a criação do pedido por isso
+    _logger.LogError(ex, "Erro ao tentar limpar o carrinho {CartId} após criar o pedido {OrderId}.", temporaryCartId, order.Id);
+    // Continuar mesmo se a limpeza do carrinho falhar, pois o pedido foi criado.
+}
+
 
     // 8. Mapear a entidade Order criada para OrderDto para retornar ao cliente
      var orderDto = new OrderDto

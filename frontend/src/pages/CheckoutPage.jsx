@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Importaremos depois para redirecionar
 import { useCart } from '../context/CartContext';
 
+
 function CheckoutPage() {
   // Estados para controlar os campos do formulário
   const [name, setName] = useState('');
@@ -12,11 +13,12 @@ function CheckoutPage() {
   const [error, setError] = useState(null); // Para erros da API
   const { refreshCart } = useCart();
   const [paymentMethod, setPaymentMethod] = useState('Boleto');
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
+
 
 
   // inicio handleSubmit \\
-const handleSubmit = async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null); // Limpa erros anteriores
@@ -57,17 +59,16 @@ const handleSubmit = async (event) => {
 
         const orderResult = await response.json(); // Pega o OrderDto retornado
         console.log('Pedido criado com sucesso:', orderResult);
-        alert(`Pedido #${orderResult.id} realizado com sucesso!`);
-
+       
         // Atualiza o estado do carrinho (deve ficar vazio ou dar 404 agora)
         // Assumindo que o backend NÃO limpou o carrinho ainda.
         await refreshCart();
 
         // TODO Tarefa 5: Redirecionar para página de confirmação
-        // navigate(`/order-confirmation/${orderResult.id}`);
+        navigate(`/order-confirmation/${orderResult.id}`);
 
         // Limpa o formulário (opcional)
-        // setName(''); setEmail(''); setAddress('');
+        setName(''); setEmail(''); setAddress('');
 
     } catch (err) {
         console.error("Erro ao finalizar pedido:", err);

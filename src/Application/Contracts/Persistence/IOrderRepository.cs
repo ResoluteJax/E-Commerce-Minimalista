@@ -1,6 +1,7 @@
 // src/Application/Contracts/Persistence/IOrderRepository.cs
 using System.Threading.Tasks;
 using MinimalistECommerce.Domain.Entities;
+using System;
 
 namespace MinimalistECommerce.Application.Contracts.Persistence
 {
@@ -12,6 +13,6 @@ namespace MinimalistECommerce.Application.Contracts.Persistence
         // Salva as alterações no banco de dados (para este repositório)
         Task<int> SaveChangesAsync();
 
-        // Outros métodos como GetById, ListByCustomer seriam adicionados aqui depois
+        Task<Order?> GetByIdAsync(int orderId, bool includeItemsAndProducts = true);
     }
 }
