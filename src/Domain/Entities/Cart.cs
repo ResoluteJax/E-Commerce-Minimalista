@@ -7,7 +7,7 @@ namespace MinimalistECommerce.Domain.Entities
     public class Cart
     {
         public Guid Id { get; set; } // Chave Primária Guid
-        public int? CustomerId { get; set; } // Chave Estrangeira anulável para Customer
+        public string? CustomerId { get; set; } // Chave Estrangeira anulável para Customer
         public DateTime CreatedAt { get; set; }
         public DateTime LastModifiedAt { get; set; }
 

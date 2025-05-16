@@ -8,7 +8,7 @@ namespace MinimalistECommerce.Application.Dtos
     public class CartDto
     {
         public Guid Id { get; set; } // Id do Carrinho
-        public int? CustomerId { get; set; } // Id do Cliente (se houver)
+        public string? CustomerId { get; set; } // Id do Cliente (se houver)
         public List<CartItemDto> Items { get; set; } = new List<CartItemDto>(); // Lista de itens no carrinho
 
         // Propriedade calculada para o total do carrinho

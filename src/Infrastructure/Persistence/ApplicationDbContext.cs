@@ -1,41 +1,40 @@
 using Microsoft.EntityFrameworkCore;
 using MinimalistECommerce.Domain.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace MinimalistECommerce.Infrastructure.Persistence
 {
-    public class ApplicationDbContext : DbContext
+    // Alterar para herdar de IdentityDbContext<Customer>
+    public class ApplicationDbContext : IdentityDbContext<Customer> 
     {
           public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
         {
         }
-        
         public DbSet<Product> Products { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
 
-        public DbSet<Customer> Customers { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
 
 
         // Adicione ou descomente este método
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(modelBuilder); // É bom chamar o base
+            base.OnModelCreating(builder);
 
-           
-            modelBuilder.Entity<Product>()
+            builder.Entity<Product>()
                 .Property(p => p.Price)
-                .HasPrecision(18, 2); // Define 18 dígitos totais, 2 casas decimais
+                .HasPrecision(18, 2);
 
-            modelBuilder.Entity<Order>()
+            builder.Entity<Order>()
                 .Property(o => o.TotalAmount)
-                .HasPrecision(18, 2); // Precisão para Order.TotalAmount
+                .HasPrecision(18, 2);
 
-            modelBuilder.Entity<OrderItem>()
+            builder.Entity<OrderItem>()
                 .Property(oi => oi.UnitPrice)
-                .HasPrecision(18, 2); // Precisão para OrderItem.UnitPrice
+                .HasPrecision(18, 2);
 
          // Outras configurações (chaves, índices, etc.) podem vir aqui
         }

@@ -11,7 +11,7 @@ namespace MinimalistECommerce.Application.Dtos
         public DateTime OrderDate { get; set; }
         public string Status { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
-        public int? CustomerId { get; set; } // ID do cliente associado (se houver)
+        public string? CustomerId { get; set; } // ID do cliente associado (se houver)
         public string ShippingAddress { get; set; } = string.Empty;
 
         // Reutilizamos o CartItemDto para representar os itens do pedido na resposta
