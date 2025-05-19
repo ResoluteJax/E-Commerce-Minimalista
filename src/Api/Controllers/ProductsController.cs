@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using MinimalistECommerce.Application.Contracts.Persistence;
 using MinimalistECommerce.Application.Dtos;
 using MinimalistECommerce.Domain.Entities;
-
+using Microsoft.AspNetCore.Authorization;
+ 
 
 
 namespace MinimalistECommerce.Api.Controllers
@@ -23,6 +24,7 @@ namespace MinimalistECommerce.Api.Controllers
         // GET: api/products
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)] // Documenta o tipo de retorno para o Swagger
+        //'[Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
         {
             var products = await _productRepository.GetAllAsync();
@@ -44,7 +46,8 @@ namespace MinimalistECommerce.Api.Controllers
         // GET: api/products/5
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)] // Documenta possível erro 404
+        //[Authorize(Roles = "Admin")]
+        
         public async Task<ActionResult<ProductDto>> GetProduct(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);

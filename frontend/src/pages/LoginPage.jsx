@@ -11,8 +11,8 @@ const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiResponse, setApiResponse] = useState({ message: null, isSuccess: false, errors: [] });
 
+  const { loginUser, refreshCart } = useCart();
   const navigate = useNavigate();
-  const { refreshCart } = useCart(); // Para atualizar o estado do carrinho no contexto
 
   const validateForm = () => {
     const newErrors = {};
@@ -31,7 +31,7 @@ const [password, setPassword] = useState('');
     event.preventDefault();
     setApiResponse({ message: null, isSuccess: false, errors: [] }); // Limpa resposta anterior
     if (!validateForm()) {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Garante que não fique em estado de submissão
       return;
     }
 
@@ -48,26 +48,25 @@ const [password, setPassword] = useState('');
 
       const data = await response.json(); // AuthResponseDto
 
-      if (!response.ok || !data.isSuccess) {
-        const errorMessages = data.errors && data.errors.length > 0 ? data.errors.join(', ') : (data.message || 'Falha no login.');
-        throw new Error(errorMessages);
+      if (data.isSuccess && data.token) {
+        loginUser(data); // Chama a função do contexto, que internamente chama refreshCart (fetchCart)
+        setApiResponse({ message: data.message || "Login bem-sucedido! Redirecionando...", isSuccess: true, errors: [] });
+        console.log("Login bem-sucedido, Token:", data.token);
+
+        setTimeout(() => {
+          navigate('/'); 
+        }, 1500);
+
+      } else { // Falha no login ou resposta inesperada
+        const errorMessages = data.errors && data.errors.length > 0 ? data.errors.join(', ') : (data.message || 'Falha no login. Verifique suas credenciais.');
+        // Define a apiResponse para erro, usando a mensagem da API
+        setApiResponse({ message: errorMessages, isSuccess: false, errors: data.errors || [data.message || 'Falha no login.'] });
+        // Não precisa lançar erro aqui, pois já estamos setando a apiResponse para erro
       }
-      
-      setApiResponse({ message: data.message || "Login bem-sucedido!", isSuccess: true, errors: [] });
-      
-      // TODO Tarefa 5: Guardar o token (data.token) no frontend
-      console.log("Login bem-sucedido, Token:", data.token); // Log temporário do token
-      
-      await refreshCart(); // Atualiza o carrinho após login
 
-      // Redirecionar para a página inicial ou dashboard após login
-      setTimeout(() => {
-        navigate('/'); 
-      }, 1500); // Delay para mostrar a mensagem de sucesso
-
-    } catch (err) {
-      console.error("Erro ao logar:", err);
-      setApiResponse({ message: err.message || "Ocorreu um erro durante o login.", isSuccess: false, errors: [err.message] });
+    } catch (err) { // Erro na chamada fetch em si (ex: rede)
+      console.error("Erro ao logar (catch):", err);
+      setApiResponse({ message: err.message || "Ocorreu um erro de comunicação durante o login.", isSuccess: false, errors: [err.message] });
     } finally {
       setIsSubmitting(false);
     }
