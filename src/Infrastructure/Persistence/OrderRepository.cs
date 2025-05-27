@@ -5,6 +5,8 @@ using MinimalistECommerce.Application.Contracts.Persistence;
 using MinimalistECommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Collections.Generic; // Para IEnumerable
+
 
 
 namespace MinimalistECommerce.Infrastructure.Persistence
@@ -25,9 +27,6 @@ namespace MinimalistECommerce.Infrastructure.Persistence
             await _context.Orders.AddAsync(order);
         }
 
-
-
-
         public async Task<Order?> GetByIdAsync(int orderId, bool includeItemsAndProducts = true)
         {
             IQueryable<Order> query = _context.Orders;
@@ -43,10 +42,23 @@ namespace MinimalistECommerce.Infrastructure.Persistence
             return await query.FirstOrDefaultAsync(o => o.Id == orderId);
         }
 
+        public async Task<IEnumerable<Order>> GetAllAsync(bool includeCustomer = true, bool includeItemsAndProducts = true)
+        {
+            IQueryable<Order> query = _context.Orders.OrderByDescending(o => o.OrderDate); // Ordena pelos mais recentes
 
+            if (includeCustomer)
+            {
+                query = query.Include(o => o.Customer); // Inclui dados do cliente
+            }
 
+            if (includeItemsAndProducts)
+            {
+                query = query.Include(o => o.OrderItems)    // Inclui os itens do pedido
+                             .ThenInclude(oi => oi.Product); // Para cada item, inclui o produto
+            }
 
-
+            return await query.ToListAsync();
+        }
 
         public async Task<int> SaveChangesAsync()
         {

@@ -9,7 +9,7 @@ import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
-import ProtectedRoute from './components/ProtectedRoute'; 
+import ProtectedRoute from './components/ProtectedRoute';
 import { useCart } from './context/CartContext';
 import './App.css';
 
@@ -41,8 +41,10 @@ function App() {
           {isAuthenticated && currentUser ? (
             <>
               <span style={{ marginRight: '15px' }}>Olá, {currentUser.fullName}!</span>
-              {/* Link para Admin se estiver autenticado (depois adicionaremos checagem de role) */}
-              <Link to="/admin" style={{ marginRight: '15px', textDecoration: 'none' }}>Admin</Link>
+              {/* Verifica se o usuário é Admin para mostrar o link */}
+              {currentUser.roles && currentUser.roles.includes('Admin') && (
+                <Link to="/admin" style={{ marginRight: '15px', textDecoration: 'none' }}>Admin</Link>
+              )}
               <button onClick={handleLogout} style={{ marginRight: '15px', padding: '5px 10px', cursor: 'pointer' }}>
                 Logout
               </button>

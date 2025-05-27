@@ -14,5 +14,8 @@ namespace MinimalistECommerce.Application.Contracts.Persistence
         Task<int> SaveChangesAsync();
 
         Task<Order?> GetByIdAsync(int orderId, bool includeItemsAndProducts = true);
+
+        Task<IEnumerable<Order>> GetAllAsync(bool includeCustomer = true, bool includeItemsAndProducts = true);
+        
     }
 }

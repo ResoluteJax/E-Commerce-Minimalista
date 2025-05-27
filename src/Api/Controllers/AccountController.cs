@@ -186,10 +186,6 @@ namespace MinimalistECommerce.Api.Controllers
 
             // Busca e adiciona as roles do usuário como claims
             var userRoles = await _userManager.GetRolesAsync(user);
-
-            _logger.LogInformation("Roles encontradas para o usuário {UserId} ({UserName}): {Roles}", user.Id, user.UserName, string.Join(", ", userRoles));
-
-
             foreach (var role in userRoles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
