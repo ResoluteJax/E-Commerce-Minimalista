@@ -1,130 +1,158 @@
 // frontend/src/components/ProductList.jsx
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; 
-import { useCart } from '../context/CartContext'; 
+import React, { useState, useEffect, useCallback } from 'react'; // Adicionado useCallback
+import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 function ProductList() {
-  // Estado para armazenar a lista de produtos
   const [products, setProducts] = useState([]);
-  // Estado para indicar se os dados estão sendo carregados
-  const [loading, setLoading] = useState(true);
-  // Estado para armazenar possíveis erros da API
-  const [error, setError] = useState(null);
-  const {refreshCart} = useCart();
+  const [loadingProducts, setLoadingProducts] = useState(true); // Renomeado para clareza
+  const [productsError, setProductsError] = useState(null);    // Renomeado para clareza
+  const { refreshCart } = useCart();
 
-  // useEffect para buscar os dados da API quando o componente montar
+  // Estados para categorias
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(''); // '' representa "Todas as Categorias"
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  // const [categoriesError, setCategoriesError] = useState(null); // Opcional, para erro específico de categorias
+
+  // Busca categorias na montagem do componente
   useEffect(() => {
-    // Define a função assíncrona para buscar os produtos
-    const fetchProducts = async () => {
-      // IMPORTANTE: Substitua 5XXX pela porta HTTPS correta da sua API .NET!
-      const apiUrl = 'http://localhost:5015/api/products';
-
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
       try {
-        setError(null); // Limpa erros anteriores
-        setLoading(true); // Inicia o carregamento
-
-        const response = await fetch(apiUrl);
-
-        // Verifica se a resposta da API foi bem-sucedida (status 2xx)
+        const response = await fetch('http://localhost:5015/api/categories');
         if (!response.ok) {
-          throw new Error(`Erro HTTP: ${response.status}`);
+          throw new Error('Falha ao buscar categorias');
         }
-
-        const data = await response.json(); // Converte a resposta para JSON
-        setProducts(data); // Atualiza o estado com os produtos recebidos
-
-      } catch (error) {
-        console.error("Erro ao buscar produtos:", error);
-        setError(`Falha ao carregar produtos: ${error.message}`); // Armazena a mensagem de erro
+        const data = await response.json();
+        setCategories(data);
+      } catch (catError) {
+        console.error("Erro ao buscar categorias:", catError);
+        // setCategoriesError(catError.message); // Define erro de categoria se necessário
       } finally {
-        setLoading(false); // Finaliza o carregamento (com sucesso ou erro)
+        setLoadingCategories(false);
       }
     };
+    fetchCategories();
+  }, []); // Roda apenas uma vez na montagem
 
-    fetchProducts(); // Chama a função de busca
-  }, []); // O array vazio [] garante que o useEffect rode apenas uma vez (na montagem)
+  // Busca produtos quando o componente monta OU quando selectedCategoryId muda
+  const fetchProducts = useCallback(async () => {
+    setLoadingProducts(true);
+    setProductsError(null);
+    let apiUrl = 'http://localhost:5015/api/products';
+    if (selectedCategoryId) { // Se uma categoria for selecionada, adiciona à URL
+      apiUrl += `?categoryId=${selectedCategoryId}`;
+    }
+    // console.log("Fetching products from:", apiUrl); // Para debug
 
-  // --- Renderização Condicional ---
-  // Se estiver carregando, exibe mensagem de loading
-  if (loading) {
-    return <p>Carregando produtos...</p>;
-  }
+    try {
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error(`Erro HTTP ao buscar produtos: ${response.status}`);
+      }
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+      setProductsError(`Falha ao carregar produtos: ${error.message}`);
+    } finally {
+      setLoadingProducts(false);
+    }
+  }, [selectedCategoryId]); // Dependência no selectedCategoryId
 
-  // Se ocorreu um erro, exibe a mensagem de erro
-  if (error) {
-    return <p style={{ color: 'red' }}>{error}</p>;
-  }
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]); // Chama fetchProducts quando ele (ou suas dependências) mudam
 
-  // Se não está carregando, não deu erro, mas não há produtos, exibe mensagem
-  if (products.length === 0) {
-    return <p>Nenhum produto encontrado.</p>;
-  }
 
-  //Função assíncrona para lídar com o clique do botão
-  
-  const handleAddToCart = async (event, productId) => { // Aceita event
-    event.stopPropagation(); // Impede propagação
-    event.preventDefault();  // Impede navegação
-
+  const handleAddToCart = async (event, productId) => {
+    event.stopPropagation();
+    event.preventDefault();
     const apiUrl = 'http://localhost:5015/api/cart/items';
     const itemToAdd = { productId: productId, quantity: 1 };
-    console.log('Adicionando ao carrinho:', itemToAdd);
-  
+    // console.log('Adicionando ao carrinho:', itemToAdd);
+
     try {
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(itemToAdd),
       });
-  
       if (!response.ok) {
-        // Se a API retornar erro (ex: produto não existe mais, erro de validação não pego antes)
-        const errorData = await response.text(); // Tenta pegar mais detalhes do erro
+        const errorData = await response.text();
         throw new Error(`Erro HTTP: ${response.status} - ${errorData}`);
       }
-  
-      // Sucesso!
-      console.log('Produto adicionado/atualizado no carrinho!', itemToAdd);
-      alert(`Produto ${productId} adicionado ao carrinho!`); // Feedback simples para o usuário
-      await refreshCart(); // Chama a função do contexto para re-buscar os dados do carrinho
-
+      // console.log('Produto adicionado/atualizado no carrinho!', itemToAdd);
+      alert(`Produto ${productId} adicionado ao carrinho!`);
+      await refreshCart();
     } catch (error) {
       console.error("Erro ao adicionar ao carrinho:", error);
-      alert(`Erro ao adicionar produto: ${error.message}`); // Mostra erro para o usuário
+      alert(`Erro ao adicionar produto: ${error.message}`);
     }
   };
-  
-  // NOVO return (quando products.length > 0)
-return (
+
+  // --- Renderização ---
+  if (loadingCategories || loadingProducts) { // Mostra loading se categorias OU produtos estiverem carregando
+    return <p>Carregando...</p>;
+  }
+
+  if (productsError) {
+    return <p style={{ color: 'red' }}>{productsError}</p>;
+  }
+
+  return (
     <div>
-     <h2>Lista de Produtos</h2>
+      <h2>Lista de Produtos</h2>
+
+      {/* Filtro de Categoria */}
+      <div style={{ marginBottom: '20px' }}>
+        <label htmlFor="category-filter" style={{ marginRight: '10px' }}>Filtrar por Categoria:</label>
+        <select
+          id="category-filter"
+          value={selectedCategoryId}
+          onChange={(e) => setSelectedCategoryId(e.target.value)}
+          style={{ padding: '8px', minWidth: '200px' }}
+        >
+          <option value="">Todas as Categorias</option>
+          {categories.map(category => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Lista de Produtos */}
+      {products.length === 0 && !loadingProducts ? ( // Condição ajustada para mostrar após o loading
+        <p>Nenhum produto encontrado para esta categoria ou em geral.</p>
+      ) : (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
           {products.map(product => (
-            // Envolve o card do produto com o Link
-            <Link key={product.id} to={`/products/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div style={{ border: '1px solid #ccc', padding: '1rem', width: '200px' }}>
+            <div key={product.id} style={{ border: '1px solid #ccc', padding: '1rem', width: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <Link to={`/products/${product.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block', flexGrow: 1 }}>
                 <img
                   src={product.imageUrl || 'https://via.placeholder.com/150'}
                   alt={product.name}
-                  style={{ width: '100%', height: '150px', objectFit: 'cover' }}
+                  style={{ width: '100%', height: '150px', objectFit: 'cover', marginBottom: '0.5rem' }}
                 />
-                <h3>{product.name}</h3> {/* O nome agora está dentro do link */}
-                <p>{product.description.substring(0, 60)}...</p>
-                <p style={{ fontWeight: 'bold' }}>
+                <h3>{product.name}</h3>
+                <p style={{ fontSize: '0.9em', color: '#555' }}>{product.categoryName || 'Sem categoria'}</p>
+                <p style={{ fontSize: '0.8em' }}>{product.description.substring(0, 60)}...</p>
+                <p style={{ fontWeight: 'bold', marginTop: 'auto' }}> {/* marginTop auto para empurrar para baixo */}
                   R$ {product.price.toFixed(2)}
                 </p>
-
-                 {/* Botão Adicionar ao Carrinho */}
-                  <button onClick={(e) => handleAddToCart(e, product.id)}> {/* Passa 'e' (evento) */}
-                    Adicionar ao Carrinho
-                  </button>
-
-              </div>
-            </Link> // Fecha o Link
+              </Link>
+              <button
+                onClick={(e) => handleAddToCart(e, product.id)}
+                style={{ marginTop: '10px', padding: '8px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
+              >
+                Adicionar ao Carrinho
+              </button>
+            </div>
           ))}
         </div>
+      )}
     </div>
   );
 }

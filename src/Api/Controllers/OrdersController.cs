@@ -208,5 +208,56 @@ namespace MinimalistECommerce.Api.Controllers
 
             return Ok(orderDtos);
         }
+
+        // PUT: api/orders/{orderId}/status
+        [HttpPut("{orderId}/status")]
+        [Authorize(Roles = "Admin")] // Protegido para Admin
+        [ProducesResponseType(StatusCodes.Status204NoContent)] // Sucesso, sem conteúdo de retorno
+        [ProducesResponseType(StatusCodes.Status400BadRequest)] // DTO inválido ou status inválido
+        [ProducesResponseType(StatusCodes.Status404NotFound)]  // Pedido não encontrado
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto statusDto)
+        {
+            _logger.LogInformation("Admin: Tentativa de atualizar status do pedido ID {OrderId} para {NewStatus}", orderId, statusDto.NewStatus);
+
+            if (statusDto == null || string.IsNullOrWhiteSpace(statusDto.NewStatus))
+            {
+                return BadRequest("O novo status não pode ser vazio.");
+            }
+
+            // Validação simples do status (pode ser expandida com uma lista de status válidos)
+            var validStatuses = new List<string> { "Pendente", "Processando", "Enviado", "Entregue", "Cancelado" };
+            if (!validStatuses.Contains(statusDto.NewStatus, StringComparer.OrdinalIgnoreCase))
+            {
+                return BadRequest($"Status '{statusDto.NewStatus}' inválido. Status válidos são: {string.Join(", ", validStatuses)}");
+            }
+
+            var order = await _orderRepository.GetByIdAsync(orderId, includeItemsAndProducts: false); // Não precisa dos itens para mudar status
+
+            if (order == null)
+            {
+                _logger.LogWarning("Admin: Pedido com ID {OrderId} não encontrado ao tentar atualizar status.", orderId);
+                return NotFound($"Pedido com ID {orderId} não encontrado.");
+            }
+
+            order.Status = statusDto.NewStatus;
+            // _orderRepository.Update(order); // EF Core rastreia a entidade, SaveChangesAsync é suficiente se 'order' foi buscado
+            // No entanto, se GetByIdAsync retornasse AsNoTracking, Update seria necessário.
+            // Para ser explícito e seguro, pode-se chamar Update, ou garantir que o repositório não use AsNoTracking para este caso.
+            // Vamos assumir que o _contexto ainda está rastreando 'order'.
+
+            var success = await _orderRepository.SaveChangesAsync() > 0;
+
+            if (!success)
+            {
+                _logger.LogError("Admin: Falha ao salvar atualização de status para o pedido {OrderId}.", orderId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Não foi possível atualizar o status do pedido.");
+            }
+
+            _logger.LogInformation("Admin: Status do pedido {OrderId} atualizado para {NewStatus} com sucesso.", orderId, statusDto.NewStatus);
+            return NoContent(); // Resposta padrão para PUT/PATCH bem-sucedido sem retornar dados
+        }
+
     }
 }

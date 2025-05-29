@@ -1,9 +1,9 @@
-// src/Application/Dtos/CreateProductDto.cs
+// src/Application/Dtos/UpdateProductDto.cs
 using System.ComponentModel.DataAnnotations;
 
 namespace MinimalistECommerce.Application.Dtos
 {
-    public class CreateProductDto
+    public class UpdateProductDto
     {
         [Required(ErrorMessage = "O nome do produto é obrigatório.")]
         [StringLength(100, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 100 caracteres.")]
@@ -19,7 +19,6 @@ namespace MinimalistECommerce.Application.Dtos
 
         public string ImageUrl { get; set; } = string.Empty;
 
-        // ADICIONE ESTA PROPRIEDADE:
-        public int? CategoryId { get; set; } // Anulável, um produto pode ser criado sem categoria inicialmente
+        public int? CategoryId { get; set; } // Permite alterar ou remover a categoria
     }
 }

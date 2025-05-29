@@ -14,9 +14,9 @@ namespace MinimalistECommerce.Infrastructure.Persistence
         public DbSet<Product> Products { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
-
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
 
         // Adicione ou descomente este método
@@ -36,7 +36,12 @@ namespace MinimalistECommerce.Infrastructure.Persistence
                 .Property(oi => oi.UnitPrice)
                 .HasPrecision(18, 2);
 
-         // Outras configurações (chaves, índices, etc.) podem vir aqui
+            builder.Entity<Product>()
+       .HasOne(p => p.Category) // Um Produto tem uma Categoria (opcional, pois CategoryId é anulável)
+       .WithMany(c => c.Products) // Uma Categoria tem muitos Produtos
+       .HasForeignKey(p => p.CategoryId) // A chave estrangeira está em Product.CategoryId
+       .OnDelete(DeleteBehavior.SetNull);
+        
         }
     }
 }

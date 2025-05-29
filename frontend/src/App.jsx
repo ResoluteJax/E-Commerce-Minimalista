@@ -3,14 +3,18 @@ import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import ProductList from './components/ProductList';
 import ProductDetail from './components/ProductDetail';
 import CartIcon from './components/CartIcon';
-import CartPage from './components/CartPage';
+import CartPage from './components/CartPage'; // Certifique-se que o caminho está correto (components ou pages)
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
-import AdminPage from './pages/AdminPage';
+import AdminPage from './pages/admin/AdminPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminOrderListPage from './pages/admin/AdminOrderListPage';
+import AdminOrderDetailPage from './pages/admin/AdminOrderDetailPage';
+import AdminProductListPage from './pages/admin/AdminProductListPage';
 import { useCart } from './context/CartContext';
+import AdminProductForm from './pages/admin/AdminProductForm';
 import './App.css';
 
 function App() {
@@ -41,7 +45,6 @@ function App() {
           {isAuthenticated && currentUser ? (
             <>
               <span style={{ marginRight: '15px' }}>Olá, {currentUser.fullName}!</span>
-              {/* Verifica se o usuário é Admin para mostrar o link */}
               {currentUser.roles && currentUser.roles.includes('Admin') && (
                 <Link to="/admin" style={{ marginRight: '15px', textDecoration: 'none' }}>Admin</Link>
               )}
@@ -60,6 +63,7 @@ function App() {
       </header>
 
       <main style={{ padding: '0 20px 20px 20px' }}>
+        {/* O componente <Routes> deve envolver TODAS as definições de <Route> */}
         <Routes>
           {/* Rotas Públicas */}
           <Route path="/" element={<ProductList />} />
@@ -70,13 +74,19 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Rota Protegida para Admin */}
+          {/* Rota Protegida para Admin - Layout principal para /admin */}
           <Route path="/admin" element={<ProtectedRoute />}>
-            <Route index element={<AdminPage />} /> {/* Renderiza AdminPage em /admin */}
-            {/* Outras futuras rotas de admin podem ser aninhadas aqui, ex: */}
-            {/* <Route path="gerenciar-produtos" element={<AdminManageProducts />} /> */}
+            <Route element={<AdminPage />}> {/* AdminPage como layout para as rotas filhas do admin */}
+              {/* Rota index para /admin (o que aparece quando se acessa /admin diretamente) */}
+              <Route index element={<p>Painel Administrativo. Selecione uma opção de gerenciamento (ex: Produtos, Pedidos).</p>} />
+              {/* Sub-rotas dentro de /admin */}
+              <Route path="orders" element={<AdminOrderListPage />} />
+              <Route path="orders/:orderId" element={<AdminOrderDetailPage />} />
+              <Route path="products" element={<AdminProductListPage />} />
+              <Route path="products/new" element={<AdminProductForm mode="create" />} /> 
+              <Route path="products/edit/:productId" element={<AdminProductForm mode="edit" />} />
+            </Route>
           </Route>
-
         </Routes>
       </main>
     </>

@@ -1,7 +1,11 @@
 // src/Infrastructure/Persistence/ProductRepository.cs
-using Microsoft.EntityFrameworkCore; // Para usar ToListAsync, FindAsync, etc.
-using MinimalistECommerce.Application.Contracts.Persistence; // Para implementar IProductRepository
-using MinimalistECommerce.Domain.Entities; // Para usar a classe Product
+using Microsoft.EntityFrameworkCore;
+using MinimalistECommerce.Application.Contracts.Persistence;
+using MinimalistECommerce.Domain.Entities;
+using System; // Para ArgumentNullException
+using System.Collections.Generic; // Para IEnumerable
+using System.Linq; // Para IQueryable, OrderBy
+using System.Threading.Tasks; // Para Task
 
 namespace MinimalistECommerce.Infrastructure.Persistence
 {
@@ -9,51 +13,51 @@ namespace MinimalistECommerce.Infrastructure.Persistence
     {
         private readonly ApplicationDbContext _context;
 
-        // Injetamos o DbContext no construtor
         public ProductRepository(ApplicationDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-
-
-    // ... métodos GetByIdAsync, GetAllAsync, AddAsync, Update, Delete ...
-        public async Task<Product?> GetByIdAsync(int id)
+        public async Task<Product?> GetByIdAsync(int id, bool includeCategory = false)
         {
-            // FindAsync é otimizado para buscar por chave primária
-            return await _context.Products.FindAsync(id);
+            IQueryable<Product> query = _context.Products;
+
+            if (includeCategory)
+            {
+                query = query.Include(p => p.Category);
+            }
+            return await query.FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync()
+        public async Task<IEnumerable<Product>> GetAllAsync(bool includeCategory = false)
         {
-            // Retorna todos os produtos como uma lista
-            return await _context.Products.ToListAsync();
+            IQueryable<Product> query = _context.Products;
+            if (includeCategory)
+            {
+                query = query.Include(p => p.Category);
+            }
+            return await query.OrderBy(p => p.Name).ToListAsync();
         }
+
 
         public async Task AddAsync(Product product)
         {
-            // Adiciona a entidade ao DbSet. O estado será 'Added'.
             await _context.Products.AddAsync(product);
-            // Nota: SaveChangesAsync() NÃO é chamado aqui.
         }
 
         public void Update(Product product)
         {
-            // Informa ao EF Core que a entidade foi modificada.
             _context.Entry(product).State = EntityState.Modified;
-             // Nota: SaveChangesAsync() NÃO é chamado aqui.
         }
 
         public void Delete(Product product)
         {
-            // Remove a entidade do DbSet. O estado será 'Deleted'.
-            _context.Products.Remove(product); 
-            // Nota: SaveChangesAsync() NÃO é chamado aqui.
+            _context.Products.Remove(product);
         }
 
-        public async Task<int> SaveChangesAsync() 
+        public async Task<int> SaveChangesAsync()
         {
-        return await _context.SaveChangesAsync();
+            return await _context.SaveChangesAsync();
         }
     }
 }
