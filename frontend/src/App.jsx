@@ -15,6 +15,8 @@ import AdminOrderDetailPage from './pages/admin/AdminOrderDetailPage';
 import AdminProductListPage from './pages/admin/AdminProductListPage';
 import { useCart } from './context/CartContext';
 import AdminProductForm from './pages/admin/AdminProductForm';
+import AdminCategoryListPage from './pages/admin/AdminCategoryListPage';
+import AdminCategoryForm from './pages/admin/AdminCategoryForm';
 import './App.css';
 
 function App() {
@@ -76,17 +78,19 @@ function App() {
 
           {/* Rota Protegida para Admin - Layout principal para /admin */}
           <Route path="/admin" element={<ProtectedRoute />}>
-            <Route element={<AdminPage />}> {/* AdminPage como layout para as rotas filhas do admin */}
-              {/* Rota index para /admin (o que aparece quando se acessa /admin diretamente) */}
-              <Route index element={<p>Painel Administrativo. Selecione uma opção de gerenciamento (ex: Produtos, Pedidos).</p>} />
-              {/* Sub-rotas dentro de /admin */}
-              <Route path="orders" element={<AdminOrderListPage />} />
-              <Route path="orders/:orderId" element={<AdminOrderDetailPage />} />
-              <Route path="products" element={<AdminProductListPage />} />
-              <Route path="products/new" element={<AdminProductForm mode="create" />} /> 
-              <Route path="products/edit/:productId" element={<AdminProductForm mode="edit" />} />
-            </Route>
-          </Route>
+        <Route element={<AdminPage />}> {/* AdminPage como layout */}
+          <Route index element={<p>Painel Administrativo. Selecione uma opção...</p>} />
+          <Route path="orders" element={<AdminOrderListPage />} />
+          <Route path="orders/:orderId" element={<AdminOrderDetailPage />} />
+          <Route path="products" element={<AdminProductListPage />} />
+          <Route path="products/new" element={<AdminProductForm mode="create" />} />
+          <Route path="products/edit/:productId" element={<AdminProductForm mode="edit" />} />
+          <Route path="categories" element={<AdminCategoryListPage />} />
+          
+          <Route path="categories/new" element={<AdminCategoryForm mode="create" />} />
+          <Route path="categories/edit/:categoryId" element={<AdminCategoryForm mode="edit" />} />
+        </Route>
+      </Route>
         </Routes>
       </main>
     </>

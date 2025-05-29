@@ -9,10 +9,10 @@ function AdminPage() {
       <p>Bem-vindo à área administrativa!</p>
       <nav style={{ marginBottom: '20px' }}>
         <Link to="/admin/orders" style={{ marginRight: '15px' }}>Gerenciar Pedidos</Link>
-        <Link to="/admin/products">Gerenciar Produtos</Link>
+        <Link to="/admin/products" style={{ marginRight: '15px' }}>Gerenciar Produtos</Link>
+        <Link to="/admin/categories">Gerenciar Categorias</Link> {/* <-- ADICIONAR LINK */}
       </nav>
       <hr />
-      {/* Outlet renderizará AdminOrderListPage ou AdminProductListPage dependendo da rota filha */}
       <Outlet />
     </div>
   );
