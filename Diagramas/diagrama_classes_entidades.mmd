@@ -1,0 +1,85 @@
+classDiagram
+    direction LR
+
+    class IdentityUser {
+        <<abstract>>
+        +string Id
+        +string UserName
+        +string Email
+        +string PhoneNumber
+        #outros membros do Identity...
+    }
+
+    class Customer {
+        +string FullName
+        +string DefaultShippingAddress
+    }
+    IdentityUser <|-- Customer
+
+    class Product {
+        +int Id
+        +string Name
+        +string Description
+        +decimal Price
+        +string ImageUrl
+        +int? CategoryId
+    }
+
+    class Category {
+        +int Id
+        +string Name
+    }
+
+    class Cart {
+        +Guid Id
+        +string? CustomerId
+        +DateTime CreatedAt
+        +DateTime LastModifiedAt
+    }
+
+    class CartItem {
+        +int Id
+        +Guid CartId
+        +int ProductId
+        +int Quantity
+    }
+
+    class Order {
+        +int Id
+        +DateTime OrderDate
+        +string? CustomerId
+        +decimal TotalAmount
+        +string ShippingAddress
+        +string Status
+    }
+
+    class OrderItem {
+        +int Id
+        +int OrderId
+        +int ProductId
+        +int Quantity
+        +decimal UnitPrice
+    }
+
+    Customer "1" -- "0..*" Order : places
+    Customer "0..1" -- "0..*" Cart : has (se Cart tivesse CustomerId não nulo e Customer tivesse ICollection<Cart>)
+    %% Simplificando: Cart tem CustomerId anulável, Customer não tem coleção de Carts diretamente no modelo atual
+
+    Product "1" -- "0..*" CartItem : contains
+    Product "1" -- "0..*" OrderItem : includedIn
+    Category "1" -- "0..*" Product : categorizes
+
+    Cart "1" -- "0..*" CartItem : has
+    Order "1" -- "0..*" OrderItem : comprises
+
+    %% Relações FK implícitas pelas propriedades de navegação e IDs:
+    %% Cart -- Customer (via Cart.CustomerId)
+    %% Order -- Customer (via Order.CustomerId)
+    %% Product -- Category (via Product.CategoryId)
+    %% CartItem -- Cart (via CartItem.CartId)
+    %% CartItem -- Product (via CartItem.ProductId)
+    %% OrderItem -- Order (via OrderItem.OrderId)
+    %% OrderItem -- Product (via OrderItem.ProductId)
+
+    %% Propriedades de navegação podem ser mostradas nas associações
+    %% Exemplo: Order o-- Customer : customer (propriedade de navegação em Order)
