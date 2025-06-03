@@ -30,6 +30,30 @@ O objetivo deste projeto não é replicar um sistema de e-commerce completo como
 * **Gerenciador de Pacotes (Frontend):** npm
 * **Documentação da API:** Swagger (OpenAPI) via Swashbuckle
 
+## Práticas de Segurança
+
+Este projeto implementa e considera as seguintes boas práticas de segurança, essenciais para uma aplicação web moderna, mesmo sendo um projeto de portfólio:
+
+* **Prevenção contra SQL Injection:**
+    * Todas as interações com o banco de dados no backend (ASP.NET Core) são realizadas através do **Entity Framework Core (EF Core)**. O EF Core, por padrão, utiliza **consultas parametrizadas** para todas as operações de banco de dados (LINQ to Entities, `DbSet` operations, etc.). Isso efetivamente previne ataques de SQL Injection, pois os valores de entrada são tratados como parâmetros de dados e não como parte do código SQL executável.
+
+* **Prevenção contra XSS (Cross-Site Scripting):**
+    * No frontend (React), a renderização de dados no DOM é feita de forma segura. Por padrão, o React **sanitiza as strings** ao inseri-las no HTML (escapando caracteres especiais), tratando-as como texto puro e não como código HTML executável. Isso mitiga a maioria dos ataques de XSS, a menos que seja intencionalmente utilizado `dangerouslySetInnerHTML` sem a devida sanitização prévia no backend.
+
+* **Autenticação e Autorização Robusta:**
+    * O backend utiliza **ASP.NET Core Identity** para gerenciamento de usuários e senhas. Ele lida com hashing de senhas, gerenciamento de usuários e roles de forma segura.
+    * A autenticação de APIs é baseada em **JSON Web Tokens (JWT)**. Os tokens são gerados e validados com uma chave secreta forte e incluem claims de role para autorização.
+    * Endpoints críticos da API (como gestão de produtos e pedidos no Admin) são protegidos com atributos `[Authorize(Roles = "Admin")]` no backend.
+    * O frontend gerencia o estado de autenticação (token e usuário) de forma persistente via `localStorage` e implementa proteção de rota (`ProtectedRoute.jsx`) baseada no status de autenticação e nas roles do usuário logado.
+
+* **Headers de Segurança HTTP:**
+    * A API backend (ASP.NET Core) adiciona cabeçalhos de segurança HTTP importantes a todas as suas respostas, aprimorando a proteção contra diversas vulnerabilidades comuns:
+        * `X-Content-Type-Options: nosniff` (Previne que navegadores tentem "adivinhar" o tipo de MIME do conteúdo, o que pode levar a ataques de XSS).
+        * `X-Frame-Options: DENY` (Previne ataques de "clickjacking" ao impedir que a página seja incorporada em `<iframe>`, `<frame>`, `<object>`).
+        * `Referrer-Policy: no-referrer-when-downgrade` (Controla qual informação de referrer é enviada em requisições de navegação, melhorando a privacidade e segurança).
+        * `Permissions-Policy: geolocation=(), microphone=()` (Permite controlar o acesso a recursos do navegador como geolocalização e microfone).
+        *(Nota: Content-Security-Policy (CSP) é uma medida de segurança poderosa, mas mais complexa de configurar, e não foi implementada neste MVP para simplificar, mas é uma próxima etapa recomendada para produção).*
+
 ## Funcionalidades Essenciais Implementadas (MVP)
 
 * **Épico 1: Configuração e Estrutura do Projeto**

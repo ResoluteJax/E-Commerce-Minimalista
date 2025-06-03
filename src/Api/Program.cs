@@ -140,13 +140,24 @@ else
 
 app.UseHttpsRedirection();
 
-app.UseCors(MyAllowSpecificOrigins);
+// Adição de Headers de Segurança Básicos
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY"); // Previne clickjacking
+    context.Response.Headers.Append("Referrer-Policy", "no-referrer-when-downgrade");
+    context.Response.Headers.Append("Permissions-Policy", "geolocation=(), microphone=()"); // Exemplo: desabilita geo/microfone
+    // Content-Security-Policy (CSP) é mais complexo e pode ser adicionado/personalizado depois.
+    // Exemplo de CSP básico (adicione com cuidado, pode quebrar o frontend):
+    // context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;");
 
+    await next();
+});
+
+app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication(); // Middleware de Autenticação (Importante!)
 app.UseAuthorization();  // Middleware de Autorização (Importante!)
-
 app.MapControllers();
-
 app.Run(); // Inicia a aplicação
 
 

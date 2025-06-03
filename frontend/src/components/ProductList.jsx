@@ -124,12 +124,24 @@ function ProductList() {
       </div>
 
       {/* Lista de Produtos */}
-      {products.length === 0 && !loadingProducts ? ( // Condição ajustada para mostrar após o loading
+      {products.length === 0 && !loadingProducts ? (
         <p>Nenhum produto encontrado para esta categoria ou em geral.</p>
       ) : (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+        // Div que envolve todos os cards - MODIFICADO PARA USAR GRID
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', // Colunas responsivas
+          gap: '1rem'
+        }}>
           {products.map(product => (
-            <div key={product.id} style={{ border: '1px solid #ccc', padding: '1rem', width: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            // Card do produto individual - width removido, será controlado pelo grid
+            <div key={product.id} style={{
+              border: '1px solid #ccc',
+              padding: '1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
               <Link to={`/products/${product.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block', flexGrow: 1 }}>
                 <img
                   src={product.imageUrl || 'https://via.placeholder.com/150'}
@@ -137,14 +149,14 @@ function ProductList() {
                   style={{ width: '100%', height: '150px', objectFit: 'cover', marginBottom: '0.5rem' }}
                 />
                 <h3>{product.name}</h3>
-                <p style={{ fontSize: '0.9em', color: '#555' }}>{product.categoryName || 'Sem categoria'}</p>
+                <p style={{ fontSize: '0.9em', color: '#555' }}>Categoria: {product.categoryName || 'Sem categoria'}</p>
                 <p style={{ fontSize: '0.8em' }}>{product.description.substring(0, 60)}...</p>
-                <p style={{ fontWeight: 'bold', marginTop: 'auto' }}> {/* marginTop auto para empurrar para baixo */}
+                <p style={{ fontWeight: 'bold', marginTop: 'auto' }}>
                   R$ {product.price.toFixed(2)}
                 </p>
               </Link>
               <button
-                onClick={(e) => handleAddToCart(e, product.id)}
+                onClick={(e) => handleAddToCart(e, product.id)} // Assumindo que handleAddToCart está definido no componente
                 style={{ marginTop: '10px', padding: '8px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
               >
                 Adicionar ao Carrinho
@@ -155,6 +167,7 @@ function ProductList() {
       )}
     </div>
   );
+  
 }
 
 export default ProductList;

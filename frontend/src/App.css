@@ -40,3 +40,16 @@
 .read-the-docs {
   color: #888;
 }
+
+/* No seu App.css ou um arquivo CSS global */
+.product-card {
+  width: 200px; /* Largura padrão */
+}
+
+@media (max-width: 600px) { /* Para telas com largura máxima de 600px */
+  .product-card {
+    width: 90%; /* Ocupa mais da largura da tela */
+    margin: 0 auto 1rem auto; /* Centraliza e adiciona margem */
+  }
+  /* Outros ajustes para mobile aqui */
+}
